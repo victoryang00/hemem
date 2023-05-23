@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
+#include <numaif.h>
 #include <assert.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -29,7 +30,9 @@
 #ifdef ALLOC_LRU
 #include "policies/paging.h"
 #endif
-
+FILE *statsf;
+FILE *timef;
+FILE *hememlogf;
 pthread_t fault_thread;
 
 int dramfd = -1;
@@ -212,17 +215,17 @@ void hemem_init()
 
   LOG("hemem_init: started\n");
 
-  dramfd = open(DRAMPATH, O_RDWR);
-  if (dramfd < 0) {
-    perror("dram open");
-  }
-  assert(dramfd >= 0);
+  // dramfd = open(DRAMPATH, O_RDWR);
+  // if (dramfd < 0) {
+  //   perror("dram open");
+  // }
+  // assert(dramfd >= 0);
 
-  nvmfd = open(NVMPATH, O_RDWR);
-  if (nvmfd < 0) {
-    perror("nvm open");
-  }
-  assert(nvmfd >= 0);
+  // nvmfd = open(NVMPATH, O_RDWR);
+  // if (nvmfd < 0) {
+  //   perror("nvm open");
+  // }
+  // assert(nvmfd >= 0);
 
   devmemfd = open("/dev/mem", O_RDWR | O_SYNC);
   if (devmemfd < 0) {
@@ -263,7 +266,8 @@ void hemem_init()
   }
 
 #if DRAMSIZE != 0
-  dram_devdax_mmap =libc_mmap(NULL, DRAMSIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, dramfd, 0);
+  dram_devdax_mmap =libc_mmap(NULL, DRAMSIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE  | MAP_ANONYMOUS, -1, 0);
+  mbind(dram_devdax_mmap, DRAMSIZE, MPOL_BIND, NULL, 0, 0);
   if (dram_devdax_mmap == MAP_FAILED) {
     perror("dram devdax mmap");
     assert(0);
@@ -271,6 +275,7 @@ void hemem_init()
 #endif
 
   nvm_devdax_mmap =libc_mmap(NULL, NVMSIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, nvmfd, 0);
+  mbind(nvm_devdax_mmap, DRAMSIZE, MPOL_BIND, NULL, 0, 0);
   if (nvm_devdax_mmap == MAP_FAILED) {
     perror("nvm devdax mmap");
     assert(0);

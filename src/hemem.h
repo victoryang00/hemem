@@ -46,8 +46,8 @@ extern "C" {
 
 #define MEM_BARRIER() __sync_synchronize()
 
-#define NVMSIZE   (480L * (1024L * 1024L * 1024L))
-#define DRAMSIZE  (128L * (1024L * 1024L * 1024L))
+#define NVMSIZE   (48L * (1024L * 1024L * 1024L))
+#define DRAMSIZE  (48L * (1024L * 1024L * 1024L))
 
 #define DRAMPATH  "/dev/dax0.0"
 #define NVMPATH   "/dev/dax1.0"
@@ -73,12 +73,12 @@ extern "C" {
 #define FAULT_THREAD_CPU  (0)
 #define STATS_THREAD_CPU  (23)
 
-FILE *hememlogf;
+
 //#define LOG(...) fprintf(stderr, __VA_ARGS__)
 //#define LOG(...)	fprintf(hememlogf, __VA_ARGS__)
 #define LOG(str, ...) while(0) {}
 
-FILE *timef;
+extern FILE* timef;
 extern bool timing;
 
 static inline void log_time(const char* fmt, ...)
@@ -96,7 +96,7 @@ static inline void log_time(const char* fmt, ...)
 //#define LOG_TIME(str, ...) fprintf(timef, str, __VA_ARGS__)
 #define LOG_TIME(str, ...) while(0) {}
 
-FILE *statsf;
+
 #define LOG_STATS(str, ...) fprintf(stderr, str,  __VA_ARGS__)
 //#define LOG_STATS(str, ...) fprintf(statsf, str, __VA_ARGS__)
 //#define LOG_STATS(str, ...) while (0) {}
